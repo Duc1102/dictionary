@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, startAt,endAt } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
+import { getFirestore, updateDoc, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, startAt,endAt, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
+import {searchFirestore, searchFirestoreSuggest} from "./search.js"
 
 const firebaseConfig = {
     apiKey: "AIzaSyDpzV-aiwW2W0rnChv4S3yh6ZBNV-unlVw",
@@ -49,124 +50,57 @@ window.onclick = function(event) {
     }
 }
 
-async function searchFirestore(searchTerm) {
-    const resultsContainer = document.getElementById('results');
-    resultsContainer.innerHTML = '';
+function removeInput(iconElement) {
+    const inputContainer = iconElement.parentElement;
+    inputContainer.remove(); // Xóa ô chứa input khỏi DOM
+}
 
-    try {
-        const q = query(
-            collection(db, 'dictionary'),
-            orderBy('vnWord'),
-            startAt(searchTerm)
-        );
-        const querySnapshot = await getDocs(q);
+function createAddRemoveIcon(inputId, addId, placeHolder, inputClass, valueInput) {
+    const addButton = document.getElementById(addId);
+    const input = document.getElementById(inputId);
+    addButton.addEventListener('click', function() {
+        const inputContainer = document.createElement('div');
+        inputContainer.classList.add('input-container');
+        const newInput = document.createElement('input');
+        newInput.type = 'text';
+        newInput.placeholder = placeHolder;
+        newInput.classList.add(inputClass, 'removable-input');
+        newInput.textContent = valueInput;
+        inputContainer.insertBefore(newInput, inputContainer.nextSibling);
 
-        if (querySnapshot.empty) {
-            resultsContainer.innerHTML = '<p>Không tìm thấy kết quả.</p>';
-            return;
-        }
+        const spanRemove = document.createElement('span');
+        spanRemove.classList.add('remove-icon');
+        spanRemove.textContent = 'x';
+        inputContainer.insertBefore(spanRemove, inputContainer.nextSibling);
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const resultItem = document.createElement('p');
-            resultItem.textContent = `Kết quả: ${data.vnWord}`;
-            resultsContainer.appendChild(resultItem);
+        const secondLastElement = input.parentElement.children[input.parentElement.children.length - 1];
+
+        input.parentElement.insertBefore(inputContainer, secondLastElement);
+
+        document.querySelectorAll('.remove-icon').forEach(spanRemoveV => {
+            spanRemoveV.onclick = () => removeInput(spanRemoveV);
         });
-    } catch (error) {
-        console.error('Lỗi khi tìm kiếm:', error);
-        resultsContainer.innerHTML = '<p>Lỗi khi tìm kiếm. Vui lòng thử lại.</p>';
-    }
-};
-
-
-async function searchFirestoreSuggest(searchTerm) {
-    const suggestionsContainer = document.getElementById('suggestions');
-    suggestionsContainer.innerHTML = '';
-
-    if (searchTerm === '') return;
-
-    try {
-        const q = query(
-            collection(db, 'dictionary'),
-            orderBy('vnWord'),
-            startAt(searchTerm),
-            endAt(searchTerm + '\uf8ff')
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            suggestionsContainer.innerHTML = '<p>Không tìm thấy kết quả.</p>';
-            return;
-        }
-
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const suggestionItem = document.createElement('div');
-            suggestionItem.classList.add('suggestion-item');
-            suggestionItem.textContent = data.vnWord;
-
-            suggestionItem.addEventListener('click', () => {
-                document.getElementById('searchInput').value = data.vnWord;
-                suggestionsContainer.innerHTML = '';
-
-                searchFirestore(data.vnWord);
-            });
-
-            suggestionsContainer.appendChild(suggestionItem);
-        });
-    } catch (error) {
-        console.error('Lỗi khi tìm kiếm:', error);
-        suggestionsContainer.innerHTML = '<p>Lỗi khi tìm kiếm. Vui lòng thử lại.</p>';
-    }
+    });
 }
 
 function addListenerForAddIcon() {
+    createAddRemoveIcon('examples', 'addExample', 'Ví dụ', 'example-input');
+    createAddRemoveIcon('groups', 'addGroup', 'Nhóm từ vựng', 'group-input');
+    createAddRemoveIcon('notes', 'addNote', 'Lưu ý', 'note-input');
+    createAddRemoveIcon('imageUrls', 'addImageUrl', 'Hình ảnh', 'imageUrl-input');
 
-    const addExampleButton = document.getElementById('addExample');
-    const examplesInputContainer = document.getElementById('examples');
-    addExampleButton.addEventListener('click', function() {
-        const newInput = document.createElement('input');
-        newInput.type = 'text';
-        newInput.placeholder = 'Ví dụ';
-        newInput.classList.add('example-input');
-        examplesInputContainer.parentElement.insertBefore(newInput, examplesInputContainer.nextSibling);
-    });
-
-    const addGroupButton = document.getElementById('addGroup');
-    const groupsInputContainer = document.getElementById('groups');
-    addGroupButton.addEventListener('click', function() {
-        const newInput = document.createElement('input');
-        newInput.type = 'text';
-        newInput.placeholder = 'Nhóm từ vựng';
-        newInput.classList.add('group-input');
-        groupsInputContainer.parentElement.insertBefore(newInput, groupsInputContainer.nextSibling);
-    });
-
-    const addNoteButton = document.getElementById('addNote');
-    const notesInputContainer = document.getElementById('notes');
-    addNoteButton.addEventListener('click', function() {
-        const newInput = document.createElement('input');
-        newInput.type = 'text';
-        newInput.placeholder = 'Lưu ý';
-        newInput.classList.add('note-input');
-        notesInputContainer.parentElement.insertBefore(newInput, notesInputContainer.nextSibling);
-    });
+    // update
+    createAddRemoveIcon('popup-examples', 'popup-addExample', 'Ví dụ', 'example-input');
+    createAddRemoveIcon('popup-groups', 'popup-addGroup', 'Nhóm từ vựng', 'group-input');
+    createAddRemoveIcon('popup-notes', 'popup-addNote', 'Lưu ý', 'note-input');
+    createAddRemoveIcon('popup-imageUrls', 'popup-addImageUrl', 'Hình ảnh', 'imageUrl-input');
 }
 
-async function isDuplicate(vnWord, engWord) {
-
-        const q = query(
-            collection(db, 'dictionary'),
-            where("vnWord", "==", vnWord),
-            where("engWord", "==", engWord)
-        );
-
-        const querySnapshot = await getDocs(q);
-
-        return !querySnapshot.empty;
+function getValueFromInput(inputId, inputClass) {
+    const inputContainer = document.getElementById(inputId);
+    const inputs = inputContainer.parentElement.querySelectorAll('.' + inputClass);
+    return Array.from(inputs).map(input => input.value?.trim());
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
     addListenerForAddIcon();
@@ -178,13 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let engWord = document.getElementById('engWord')?.value?.trim();
         let type = document.getElementById('type')?.value?.trim();
         let pronunciation = document.getElementById('pronunciation')?.value?.trim();
-        let imageUrl = document.getElementById('imageUrl')?.value?.trim();
-
 
         const q = query(
             collection(db, 'dictionary'),
-            where("vnWord", "==", vnWord),
-            where("engWord", "==", engWord)
+            where("vnWordLowerCase", "==", vnWord.toLowerCase()),
+            where("engWordLowerCase", "==", engWord.toLowerCase())
         );
 
         const querySnapshot = await getDocs(q);
@@ -206,14 +138,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const noteInputs = notesInputContainer.parentElement.querySelectorAll('.note-input');
         const notes = Array.from(noteInputs).map(input => input.value?.trim());
 
+        const imageUrlsInputContainer = document.getElementById('imageUrls');
+        const imageUrlsInputs = imageUrlsInputContainer.parentElement.querySelectorAll('.imageUrl-input');
+        const imageUrls = Array.from(imageUrlsInputs).map(input => input.value?.trim());
+
         try {
             await addDoc(collection(db, 'dictionary'), {
                 vnWord,
+                vnWordLowerCase: vnWord?.toLowerCase(),
                 engWord,
+                engWordLowerCase: engWord?.toLowerCase(),
                 type,
                 pronunciation,
                 examples,
-                imageUrl,
+                imageUrls,
                 groups,
                 notes,
                 insDtm: serverTimestamp()
@@ -224,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('engWord').value = '';
             document.getElementById('type').value = '';
             document.getElementById('pronunciation').value = '';
-            document.getElementById('imageUrl').value = '';
 
             exampleInputs.forEach(input => {
                 input.value = '';
@@ -235,6 +172,14 @@ document.addEventListener('DOMContentLoaded', () => {
             noteInputs.forEach(input => {
                 input.value = '';
             });
+            imageUrlsInputs.forEach(input => {
+                input.value = '';
+            });
+
+            document.querySelectorAll('.remove-icon').forEach(spanRemoveV => {
+                removeInput(spanRemoveV);
+            });
+
         } catch (error) {
             console.error('Lỗi khi thêm dữ liệu:', error);
             showPopup('Lỗi khi thêm dữ liệu. Vui lòng liên hệ ntduc3.', 'error');
@@ -247,9 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('suggestions').innerHTML = '';
 
         const searchTerm = document.getElementById('searchInput').value.trim();
-        if (searchTerm) {
-            searchFirestore(searchTerm);
-        }
+        searchFirestore(searchTerm);
     });
 
     document.getElementById('searchInput').addEventListener('input', (event) => {
@@ -257,5 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
         searchFirestoreSuggest(searchTerm);
     });
 });
+
+
+
 
 

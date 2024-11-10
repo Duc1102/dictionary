@@ -33,22 +33,31 @@
             </div>
             <div class="form-group">
                 <label for="examples">Ví dụ: </label>
-                <input type="text" id="examples" class="example-input" placeholder="Ví dụ">
-                <button type="button" id="addExample" class="add-button">+</button>
+                <div>
+                    <input type="text" id="examples" class="example-input" placeholder="Ví dụ">
+                    <button type="button" id="addExample" class="add-button">+</button>
+                </div>
             </div>
             <div class="form-group">
-                <label for="imageUrl">Hình ảnh: </label>
-                <input type="text" id="imageUrl" placeholder="Hình ảnh">
+                <label for="imageUrls">Hình ảnh: </label>
+                <div>
+                    <input type="text" id="imageUrls" class="imageUrl-input" placeholder="Hình ảnh">
+                    <button type="button" id="addImageUrl" class="add-button">+</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="groups">Nhóm từ vựng: </label>
-                <input type="text" id="groups" class="group-input" placeholder="Nhóm từ vựng">
-                <button type="button" id="addGroup" class="add-button">+</button>
+                <div>
+                    <input type="text" id="groups" class="group-input" placeholder="Nhóm từ vựng">
+                    <button type="button" id="addGroup" class="add-button">+</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="notes">Lưu ý: </label>
-                <input type="text" id="notes" class="note-input" placeholder="Lưu ý">
-                <button type="button" id="addNote" class="add-button">+</button>
+                <div>
+                    <input type="text" id="notes" class="note-input" placeholder="Lưu ý">
+                    <button type="button" id="addNote" class="add-button">+</button>
+                </div>
             </div>
 
             <button class="submitButton" type="submit">Thêm</button>
@@ -56,13 +65,81 @@
     </div>
 
     <div id="searchSection" class="section" style="display: none;">
-        <h1>Tìm kiếm trong Firestore</h1>
+        <h1>Tìm kiếm trong Dictionary</h1>
         <form id="searchForm">
-            <input type="text" id="searchInput" placeholder="Nhập từ cần tìm kiếm" required>
+            <input type="text" id="searchInput" placeholder="Nhập từ cần tìm kiếm">
             <div id="suggestions"></div>
             <button type="submit">Tìm kiếm</button>
         </form>
-        <div id="results"></div>
+        <table id="dataTable">
+            <thead>
+            <tr>
+                <th>VN Word</th>
+                <th>ENG Word</th>
+                <th>Loại từ</th>
+                <th>Phiên âm</th>
+                <th>Ví dụ</th>
+                <th>Hình ảnh</th>
+                <th>Nhóm từ vựng</th>
+                <th>Lưu ý</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="dataTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="overlay" style="display: none;"></div> <!-- Lớp phủ nền -->
+    <div id="update-popup" style="display: none;">
+        <h2>Update</h2>
+        <div class="form-group">
+            <label for="popup-vnWord">VN Word: </label>
+            <input type="text" id="popup-vnWord" placeholder="VN Word" required>
+        </div>
+        <div class="form-group">
+            <label for="popup-engWord">ENG Word: </label>
+            <input type="text" id="popup-engWord" placeholder="ENG Word" required>
+        </div>
+        <div class="form-group">
+            <label for="popup-type">Loại từ: </label>
+            <input type="text" id="popup-type" placeholder="Loại từ">
+        </div>
+        <div class="form-group">
+            <label for="popup-pronunciation">Phiên âm: </label>
+            <input type="text" id="popup-pronunciation" placeholder="Phiên âm">
+        </div>
+        <div class="form-group">
+            <label for="popup-examples">Ví dụ: </label>
+            <div>
+                <input type="text" id="popup-examples" class="example-input" placeholder="Ví dụ">
+                <button type="button" id="popup-addExample" class="add-button">+</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="popup-imageUrls">Hình ảnh: </label>
+            <div>
+                <input type="text" id="popup-imageUrls" class="imageUrl-input" placeholder="Hình ảnh">
+                <button type="button" id="popup-addImageUrl" class="add-button">+</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="popup-groups">Nhóm từ vựng: </label>
+            <div>
+                <input type="text" id="popup-groups" class="group-input" placeholder="Nhóm từ vựng">
+                <button type="button" id="popup-addGroup" class="add-button">+</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="popup-notes">Lưu ý: </label>
+            <div>
+                <input type="text" id="popup-notes" class="note-input" placeholder="Lưu ý">
+                <button type="button" id="popup-addNote" class="add-button">+</button>
+            </div>
+        </div>
+
+        <button onclick="saveUpdate()">Save</button>
+        <button onclick="closePopup()">Close</button>
     </div>
 
     <div id="popupModal" class="modal">
@@ -72,5 +149,8 @@
         </div>
     </div>
     <script type="module" src="app.js"></script>
+    <script type="module" src="search.js.js"></script>
+    <script type="module" src="add.js"></script>
+    <script type="module" src="updatePopup.js"></script>
 </body>
 </html>
